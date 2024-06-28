@@ -1,3 +1,4 @@
+import os
 def main():
     pass
 
@@ -27,28 +28,84 @@ def extract_file(filename):
                 in_instantation = False
 
 # need to write parser
-def parse_line(line, comment = False):
+
+def read_line(file):
+    line = ''
+    single_line_comment = False
+    multi_line_comment = True
+    last_char = ''
+    while True:
+        char = file.read(1)
+        if not char:
+            return -1
+        if char == ';':
+            break
+        if last_char + char == '//':
+            single_line_comment = True
+            line = line[:-1]
+        if single_line_comment and last_char + char == '\n':
+            single_line_comment = False
+        if last_char + char == '/*':
+            line = line[:-1]
+            multi_line_comment = True
+        if multi_line_comment and last_char + char == '*/':
+            multi_line_comment = False
+        if not (single_line_comment and multi_line_comment):
+            line += char
+            last_char = char
+    return line.strip()
+
+def parse_line(line, split_char = ' ', special_chars = []):
     term_list = []
     current_term = ''
-    include_spaces = comment
-    last_char = ''
-    line = line.strip()
+    escape_term = ''
+    nested_type = ''
+    special_chars_str = ''
+    nested_count = 0
+    include_spaces = False
+    escape_table = {
+        '[' : ']',
+        '{' : '}',
+        '(' : ')'
+    }
     
+
     for char in line:
+        if char in escape_table.keys():
+            if nested_type == '':
+                nested_type = char
+                include_spaces = True
+                escape_term = escape_table[char]
+                nested_count += 1
+                if current_term != '':
+                    term_list.append(current_term)
+                    current_term = char
+            elif nested_type == char:
+                nested_count += 1
+
+
         if include_spaces:
             current_term += char
-            if char == ']' or char == '}':
+            if char == escape_term and nested_count == 0:
                 include_spaces = False
-        elif char != ' ':
-            if char == '(' or char == ')' or char == ',':
-                term_list.append(char)
-                current_term = ''
-                continue
+                escape_term = ''
+                if current_term != '':
+                    term_list.append(current_term)
+                    current_term = ''
+            else:
+                nested_count -= 1
+            continue
+        if char != split_char:
             current_term += char
-            if char == '[' or char == '{':
-                include_spaces = True
-            elif last_char + char == '//':
-                include_spaces = True
+            if special_chars != []:
+                for spe_char in special_chars:
+                    if current_term[-len(spe_char):0] == spe_char:
+                        
+                        term_list.append(current_term[-len(spe_char):0]) 
+                        term_list.append(spe_char)
+                        current_term = ''
+
+                
         elif current_term != '':
             term_list.append(current_term)
             current_term = ''
@@ -62,4 +119,18 @@ def get_value(line, value, offset = 1):
     index = line.index(value)
     return line[value + offset]
 if __name__ == '__main__':
-    print(parse_line('    input logic [0:0] btn,'))
+    file = open('example_genome.sv', 'r')
+    current_line = 0
+    print(os.getcwd())
+    while current_line != -1:
+        current_line = read_line(file)
+        if current_line == -1:
+            break
+        cleaned_line = current_line.replace('\n', ' ')
+        parsed_line = parse_line(cleaned_line)
+        if 'module' in parsed_line:
+            ind = parsed_line.index('module')
+            parsed_line = parsed_line[ind:]
+
+            print(parsed_line)
+   # print(parse_line('    input logic [0:0] btn,'))
