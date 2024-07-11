@@ -10,7 +10,7 @@ class ModuleDataValues:
     def output_data_string(self):
         output_str = ""
         for value in self.values:
-            output_str += f"\t.{value.upper()}({value.upper()}) // {self.data_width} \n"
+            output_str += f"\t.{value.upper()}({value.upper()}) // {self.data_type} {self.data_width} \n"
         return output_str
 
 def main():
