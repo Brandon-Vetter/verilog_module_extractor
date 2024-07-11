@@ -1,31 +1,79 @@
 import os
-def main():
-    pass
 
-def extract_file(filename):
-    system_verilog_file = open(filename, 'r')
-    in_instantation = False
-    modules_dictonary = {}
-    current_name = ''
-    for line in system_verilog_file.readlines():
-        if 'module' in line.lower():
-            in_instantation = True
-            parsed_line = parse_line(line.lower())[0]
-            current_name = get_value(parsed_line, 'module')
-            modules_dictonary[current_name] = {'PARAMTERS' : [],
-                                               'COMMENTS' : [],
-                                               'VALUES' : []}
-        if in_instantation:
-            if '//' in line:
-                continue
-            parsed_line = parsed_line(line.lower()) 
-            if 'parameter' in line.lower():
-                parameters = parsed_line(line.lower())
-                for parameter in parameters:
-                    parameter_name = get_value(parameter, 'parameter')
-                    modules_dictonary[current_name]['PARAMETERS'][parameter_name] = []
-            if ');' in line:
-                in_instantation = False
+class ModuleDataValues:
+    def __init__(self, data_type, data_width='1 bit', bus_width=''):
+        self.data_type=data_type
+        self.data_width=data_width
+        self.bus_width=bus_width
+        self.values = []
+    
+    def output_data_string(self):
+        output_str = ""
+        for value in self.values:
+            output_str += f"\t.{value.upper()}({value.upper()}) // {self.data_width} \n"
+        return output_str
+
+def main():
+    file = open('example_genome.sv', 'r')
+    current_line = 0
+    print(os.getcwd())
+    modules = []
+    while current_line != -1:
+        current_line = read_line(file)
+        if current_line == -1:
+            break
+        cleaned_line = current_line.replace('\n', ' ')
+        parsed_line = parse_line(cleaned_line)
+        if 'module' in parsed_line:
+            ind = parsed_line.index('module')
+            parsed_line = parsed_line[ind:]
+            modules.append(parsed_line)
+    
+    file.close()
+    inputs = []
+    outputs = []
+    for module in modules:
+        name = module[1]
+        parameters = module[2].replace('(', '').replace(')', '')
+        parsed_parameters = parse_line(parameters, split_char=',', ignore_escape=True)
+        ip = False
+        op = False
+        for parameter in parsed_parameters:
+            if 'input' in parameter or 'output' in parameter:
+                data_value = parse_line(parameter)
+                data_type = data_value[1]
+                value = ModuleDataValues(data_type)
+                if '[' in data_value[2]:
+                    value.data_width = data_value[2]
+                    value.values.append(data_value[3])
+                else:
+                    value.values.append(data_value[2])
+                if 'input' in data_value[0]:
+                    inputs.append(value)
+                    ip = True
+                    op = False
+                if 'output' in data_value[0]:
+                    outputs.append(value)
+                    ip = False
+                    op = True
+            else:
+                if ip:
+                    inputs[-1].values.append(parameter.strip())
+                elif op:
+                    outputs[-1].values.append(parameter.strip())
+        
+        print_str = name
+        print_str += f" {name}_inst (\n"
+        print_str += "// INPUTS\n"
+        for input in inputs:
+            print_str += input.output_data_string()
+        print_str += "// OUTPUTS\n"
+        for output in outputs:
+            print_str += output.output_data_string()
+        print(print_str + ');')
+        
+                
+            
 
 # need to write parser
 
@@ -55,7 +103,7 @@ def read_line(file):
             last_char = char
     return line.strip()
 
-def parse_line(line, split_char = ' ', special_chars = []):
+def parse_line(line, split_char = ' ', special_chars = [], ignore_escape=False):
     term_list = []
     current_term = ''
     escape_term = ''
@@ -68,18 +116,20 @@ def parse_line(line, split_char = ' ', special_chars = []):
         '{' : '}',
         '(' : ')'
     }
+    if ignore_escape:
+        escape_table = {}
     
 
     for char in line:
-        if char in escape_table.keys():
+        if char in escape_table.keys() and not ignore_escape:
             if nested_type == '':
                 nested_type = char
                 include_spaces = True
                 escape_term = escape_table[char]
-                nested_count += 1
                 if current_term != '':
                     term_list.append(current_term)
                     current_term = char
+                    continue
             elif nested_type == char:
                 nested_count += 1
 
@@ -92,7 +142,7 @@ def parse_line(line, split_char = ' ', special_chars = []):
                 if current_term != '':
                     term_list.append(current_term)
                     current_term = ''
-            else:
+            elif char == escape_term:
                 nested_count -= 1
             continue
         if char != split_char:
@@ -118,19 +168,7 @@ def parse_line(line, split_char = ' ', special_chars = []):
 def get_value(line, value, offset = 1):
     index = line.index(value)
     return line[value + offset]
-if __name__ == '__main__':
-    file = open('example_genome.sv', 'r')
-    current_line = 0
-    print(os.getcwd())
-    while current_line != -1:
-        current_line = read_line(file)
-        if current_line == -1:
-            break
-        cleaned_line = current_line.replace('\n', ' ')
-        parsed_line = parse_line(cleaned_line)
-        if 'module' in parsed_line:
-            ind = parsed_line.index('module')
-            parsed_line = parsed_line[ind:]
 
-            print(parsed_line)
+if __name__ == '__main__':
+    main()
    # print(parse_line('    input logic [0:0] btn,'))

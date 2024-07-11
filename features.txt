@@ -1,0 +1,67 @@
+FEATURES:
+ability to read and print all modules in a file
+ - turn module into dictonary
+output to new file
+append to file
+take name and return that module
+print all modules
+let user deside in program terminal through stdin
+output to stdout
+
+
+example:
+turn:
+
+module comparator #(
+    parameter DSP_WIDTH = 48,
+    parameter MAX_CODON_NIBBLES = 5
+    )(
+    input logic CLK,
+    input logic RST,
+    // Data inputs
+    input logic [DSP_WIDTH-1:0] WINDOW,
+    input logic [DSP_WIDTH-1:0] CODON,
+    // Match detection output
+    output logic MATCH
+    );
+    ...
+endmodule
+
+module adder #(
+    parameter ADDER_WIDTH = 32,
+    parameter INPUT_COUNT = 4
+    )(
+    input logic CLK,
+    input wire RST,
+    // Data inputs
+    input wire [INPUT_COUNT-1:0][ADDER_WIDTH-1:0] IN,
+    // Data outputs
+    output reg [31:0] OUT
+    );
+    ...
+endmodule
+Would go and output something like this:
+comparator #(
+  .DSP_WIDTH(DSP_WIDTH),
+  .MAX_CODON_NIBBLES(MAX_CODON_NIBBLES)
+) comparator_inst (
+  .CLK(CLK), // 1-bit logic input
+  .RST(RST), // 1-bit input
+  // Data inputs
+  .WINDOW(WINDOW), // {DSP_WIDTH}-bit logic input
+  .CODON(CODON), // {DSP_WIDTH}-bit logic input
+  // Match detection output
+  .MATCH(MATCH) // 1-bit logic output
+);
+
+adder #(
+  .ADDER_WIDTH(ADDER_WIDTH),
+  .INPUT_COUNT(INPUT_COUNT)
+) adder_inst (
+  .CLK(CLK), // 1-bit logic input
+  .RST(RST), // 1-bit wire input
+  // Data inputs
+  .IN(IN), // {INPUT_COUNT} by {ADDER_WIDTH}-bit wire input
+  // Data outputs
+  .OUT(OUT), // 32-bit register output
+);
