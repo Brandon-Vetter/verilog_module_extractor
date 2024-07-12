@@ -6,11 +6,19 @@ class ModuleDataValues:
         self.data_width=data_width
         self.bus_width=bus_width
         self.values = []
+        self.name_overides = {}
     
     def output_data_string(self):
         output_str = ""
+        bus_width_str = ""
+        if self.bus_width != '':
+            bus_width_str = f"bus {self.bus_width}"
         for value in self.values:
-            output_str += f"\t.{value.upper()}({value.upper()}) // {self.data_type} {self.data_width} \n"
+            try:
+                value_input = self.name_overides[value]
+            except KeyError:
+                value_input = value
+            output_str += f"\t.{value}({value_input}) // {self.data_type} {self.data_width} {bus_width_str}\n"
         return output_str
 
 def main():
@@ -32,9 +40,32 @@ def main():
     file.close()
     inputs = []
     outputs = []
+    static_data = []
     for module in modules:
         name = module[1]
-        parameters = module[2].replace('(', '').replace(')', '')
+        wire_inputs = 2
+        if "#" in module[2]:
+            wire_inputs = 4
+            static_parameters = module[3].replace('(', '').replace(')', '')
+            static_input = parse_line(static_parameters, split_char=',', ignore_escape=True)
+            data_value = False
+            last_var_name = ''
+            for var in static_input:
+                local_paramter = parse_line(var, special_chars=['='])
+                for param in local_paramter:
+                    if 'parameter' in param.lower():
+                        static_data.append(ModuleDataValues(param, data_width=''))
+                    elif '=' in param:
+                        data_value = True
+                        continue
+                    elif data_value:
+                        data_value = False
+                        static_data[-1].name_overides[last_var_name] = param
+                    else:
+                        last_var_name = param
+                        static_data[-1].values.append(param)
+
+        parameters = module[wire_inputs].replace('(', '').replace(')', '')
         parsed_parameters = parse_line(parameters, split_char=',', ignore_escape=True)
         ip = False
         op = False
@@ -56,6 +87,10 @@ def main():
                     outputs.append(value)
                     ip = False
                     op = True
+                try:
+                    value.bus_width = data_value[4]
+                except IndexError:
+                    pass
             else:
                 if ip:
                     inputs[-1].values.append(parameter.strip())
@@ -63,7 +98,15 @@ def main():
                     outputs[-1].values.append(parameter.strip())
         
         print_str = name
-        print_str += f" {name}_inst (\n"
+        if static_data != []:
+            print_str += " #(\n"
+            print_str += "// PARAMETERS\n"
+            for data in static_data:
+                print_str += data.output_data_string()
+            print_str += ")"
+        print_str += f" {name}_inst "
+        print_str += "(\n"
+        
         print_str += "// INPUTS\n"
         for input in inputs:
             print_str += input.output_data_string()
@@ -139,6 +182,7 @@ def parse_line(line, split_char = ' ', special_chars = [], ignore_escape=False):
             if char == escape_term and nested_count == 0:
                 include_spaces = False
                 escape_term = ''
+                nested_type = ''
                 if current_term != '':
                     term_list.append(current_term)
                     current_term = ''
