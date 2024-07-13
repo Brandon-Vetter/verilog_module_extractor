@@ -1,4 +1,5 @@
 import os
+import argparse
 
 class ModuleDataValues:
     def __init__(self, data_type, data_width='1 bit', bus_width=''):
@@ -22,9 +23,65 @@ class ModuleDataValues:
         return output_str
 
 def main():
-    file = open('example_genome.sv', 'r')
+    parser = argparse.ArgumentParser(
+        prog='Verilog module extractor',
+        description="Searches for modules in a .sv file and outputs a copiable version of the components to use elsewhere in the project.",
+        epilog='Made in request for Holonium.'
+    )
+    
+    parser.add_argument('filename', 
+                        help="file to parse")
+    parser.add_argument('-f', '--output_file_location',
+                        nargs='?',
+                        const='',
+                        default=None,
+                        help="what file to save the output to.  If file exists will append to file. If no parameter is given will append file read from.")
+    parser.add_argument('-q', '--quiet_stdout',
+                        action='store_true',
+                        help="hides output to stdout")
+    parser.add_argument('-n', '--print_names',
+                        action='store_true',
+                        help="Prints out only the names of every module")
+    parser.add_argument('-s', '--specify_modules',
+                        nargs='*',
+                        default=[],
+                        help="Print out only these modules. Default is all.")
+    parser.add_argument('-na', '--not_append',
+                        action='store_true',
+                        help="do not append a file being written to.")
+    
+    args = parser.parse_args()
+    filename = args.filename
+    get_data = None
+
+    if args.print_names:
+        get_data = get_module_names(filename)
+    else:
+        get_data = extract_modules(filename, args.specify_modules)
+
+    if not args.quiet_stdout:
+        for data in get_data:
+            print(data + "\n")
+    
+    if args.output_file_location != None:
+        output_file = args.output_file_location
+        if output_file == '':
+            output_file = args.filename
+        
+        IO_file = None
+        if os.path.isfile(output_file) and not args.not_append:
+            IO_file = open(output_file, 'a')
+        else:
+            IO_file = open(output_file, 'w')
+        
+        for data in get_data:
+            IO_file.write("\n\n"+data+"\n\n")
+
+
+
+def parse_modules(file_name):
+    file = open(file_name, 'r')
     current_line = 0
-    print(os.getcwd())
     modules = []
     while current_line != -1:
         current_line = read_line(file)
@@ -36,13 +93,21 @@ def main():
             ind = parsed_line.index('module')
             parsed_line = parsed_line[ind:]
             modules.append(parsed_line)
-    
+
     file.close()
+    return modules
+
+def extract_modules(file_name, modules_to_extract = []):
+    modules = parse_modules(file_name)
     inputs = []
     outputs = []
     static_data = []
+    return_data = []
     for module in modules:
         name = module[1]
+        if name not in modules_to_extract and modules_to_extract != []:
+            continue
+
         wire_inputs = 2
         if "#" in module[2]:
             wire_inputs = 4
@@ -113,8 +178,9 @@ def main():
         print_str += "// OUTPUTS\n"
         for output in outputs:
             print_str += output.output_data_string()
-        print(print_str + ');')
-        
+        return_data.append(print_str + ');')
+    
+    return return_data
                 
             
 
@@ -145,6 +211,14 @@ def read_line(file):
             line += char
             last_char = char
     return line.strip()
+
+def get_module_names(file_name):
+    modules = parse_modules(file_name)
+    names = []
+    for module in modules:
+        names.append(module[1])
+    
+    return names
 
 def parse_line(line, split_char = ' ', special_chars = [], ignore_escape=False):
     term_list = []
@@ -215,4 +289,3 @@ def get_value(line, value, offset = 1):
 
 if __name__ == '__main__':
     main()
-   # print(parse_line('    input logic [0:0] btn,'))
