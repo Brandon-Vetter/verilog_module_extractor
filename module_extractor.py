@@ -166,19 +166,16 @@ def extract_modules(file_name, modules_to_extract = []):
             data_value = False
             last_var_name = ''
             for var in static_input:
-                local_paramter = parse_line(var, special_chars=['='])
-                for param in local_paramter:
-                    if 'parameter' in param.lower():
-                        static_data.append(ModuleDataValues(param, data_width=''))
-                    elif '=' in param:
-                        data_value = True
-                        continue
-                    elif data_value:
-                        data_value = False
-                        static_data[-1].name_overides[last_var_name] = param
-                    else:
-                        last_var_name = param
-                        static_data[-1].values.append(param)
+                local_paramter = parse_line(var, split_char='=')
+                data_line = parse_line(local_paramter[0])
+                if 'parameter' in data_line[0].lower():
+                    static_data.append(ModuleDataValues(data_line[0], data_width=''))
+                    static_data[-1].values.append(data_line[1])
+                    static_data[-1].name_overides[data_line[1]] = local_paramter[1]
+                    continue
+                else:
+                    static_data[-1].values.append(data_line[0])
+                    static_data[-1].name_overides[data_line[0]] = local_paramter[0]
 
         parameters = module[wire_inputs].replace('(', '').replace(')', '')
         parsed_parameters = parse_line(parameters, split_char=',', ignore_escape=True)
@@ -259,7 +256,7 @@ def read_line(file):
         if last_char + char == '//':
             single_line_comment = True
             line = line[:-1]
-        if single_line_comment and last_char + char == '\n':
+        if single_line_comment and char == '\n':
             single_line_comment = False
         if last_char + char == '/*':
             line = line[:-1]
@@ -268,7 +265,7 @@ def read_line(file):
             multi_line_comment = False
         if not (single_line_comment and multi_line_comment):
             line += char
-            last_char = char
+        last_char = char
     return line.strip()
 
 def get_module_names(file_name):
