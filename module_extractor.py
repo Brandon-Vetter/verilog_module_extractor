@@ -147,11 +147,11 @@ def extract_modules(file_name, modules_to_extract = []):
     in an array of strings consisting of a module that can be used.
     """
     modules = parse_modules(file_name)
-    inputs = []
-    outputs = []
-    static_data = []
     return_data = []
     for module in modules:
+        inputs = []
+        outputs = []
+        static_data = []
         name = module[1]
         if name not in modules_to_extract and modules_to_extract != []:
             continue
@@ -170,12 +170,12 @@ def extract_modules(file_name, modules_to_extract = []):
                 data_line = parse_line(local_paramter[0])
                 if 'parameter' in data_line[0].lower():
                     static_data.append(ModuleDataValues(data_line[0], data_width=''))
-                    static_data[-1].values.append(data_line[1])
-                    static_data[-1].name_overides[data_line[1]] = local_paramter[1]
+                    static_data[-1].values.append(data_line[1].strip())
+                    static_data[-1].name_overides[data_line[1].strip()] = local_paramter[1].strip()
                     continue
                 else:
-                    static_data[-1].values.append(data_line[0])
-                    static_data[-1].name_overides[data_line[0]] = local_paramter[0]
+                    static_data[-1].values.append(data_line[0].strip())
+                    static_data[-1].name_overides[data_line[0].strip()] = local_paramter[0].strip()
 
         parameters = module[wire_inputs].replace('(', '').replace(')', '')
         parsed_parameters = parse_line(parameters, split_char=',', ignore_escape=True)
