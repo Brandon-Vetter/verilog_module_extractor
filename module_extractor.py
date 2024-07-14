@@ -245,6 +245,7 @@ def read_line(file):
             line = line[:-1]
         if single_line_comment and char == '\n':
             single_line_comment = False
+            continue
         if last_char + char == '/*':
             line = line[:-1]
             multi_line_comment = True

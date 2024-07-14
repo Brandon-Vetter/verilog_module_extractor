@@ -2,4 +2,6 @@ example_genome.sv
 features.txt
 test_2.sv
 test_3.sv
+test (1).sv
+test.sv
 .gitignore
