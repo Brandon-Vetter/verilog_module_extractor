@@ -187,7 +187,7 @@ def extract_modules(file_name, modules_to_extract = []):
             if 'input' in parameter or 'output' or 'inout' in parameter:
                 data_value = parse_line(parameter)
                 data_type = data_value[1]
-                value = ModuleDataValues(data_type, direction=parameter)
+                value = ModuleDataValues(data_type, direction=data_value[0])
                 if '[' in data_value[2]:
                     value.data_width = data_value[2]
                     value.values.append(data_value[3])
