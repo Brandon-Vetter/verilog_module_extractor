@@ -36,10 +36,11 @@ class ModuleDataValues:
     being able to print its data as a string.
     """
 
-    def __init__(self, data_type, data_width='1 bit', bus_width=''):
+    def __init__(self, data_type, data_width='1 bit', bus_width='',direction=''):
         self.data_type=data_type
         self.data_width=data_width
         self.bus_width=bus_width
+        self.direction=direction
         self.values = []
         self.name_overides = {}
     
@@ -53,7 +54,7 @@ class ModuleDataValues:
                 value_input = self.name_overides[value]
             except KeyError:
                 value_input = value
-            output_str += f"\t.{value}({value_input}) // {self.data_type} {self.data_width} {bus_width_str}\n"
+            output_str += f"\t.{value}({value_input}) // {self.direction.upper()} {self.data_type} {self.data_width} {bus_width_str}\n"
         return output_str
 
 def main():
@@ -149,9 +150,7 @@ def extract_modules(file_name, modules_to_extract = []):
     modules = parse_modules(file_name)
     return_data = []
     for module in modules:
-        inputs = []
-        outputs = []
-        other = []
+        module_data = []
         static_data = []
         name = module[1]
         if name not in modules_to_extract and modules_to_extract != []:
@@ -188,35 +187,19 @@ def extract_modules(file_name, modules_to_extract = []):
             if 'input' in parameter or 'output' or 'inout' in parameter:
                 data_value = parse_line(parameter)
                 data_type = data_value[1]
-                value = ModuleDataValues(data_type)
+                value = ModuleDataValues(data_type, direction=parameter)
                 if '[' in data_value[2]:
                     value.data_width = data_value[2]
                     value.values.append(data_value[3])
                 else:
                     value.values.append(data_value[2])
-                if 'input' in data_value[0]:
-                    inputs.append(value)
-                    ip = True
-                    op = False
-                elif 'output' in data_value[0]:
-                    outputs.append(value)
-                    ip = False
-                    op = True
-                elif 'inout' in data_value[0]: 
-                    other.append(value)
-                    ip = False
-                    op = False
+                module_data.append(value)
                 try:
                     value.bus_width = data_value[4]
                 except IndexError:
                     pass
             else:
-                if ip:
-                    inputs[-1].values.append(parameter.strip())
-                elif op:
-                    outputs[-1].values.append(parameter.strip())
-                else:
-                    other[-1].values.append(parameter.strip())
+                module_data[-1].values.append(parameter.strip())
         
         # add the names for the sections
         print_str = name
@@ -229,18 +212,9 @@ def extract_modules(file_name, modules_to_extract = []):
         print_str += f" {name}_inst "
         print_str += "(\n"
         
-        if inputs != []:
-            print_str += "// INPUTS\n"
-            for input in inputs:
-                print_str += input.output_data_string()
-        if outputs != []:
-            print_str += "// OUTPUTS\n"
-            for output in outputs:
-                print_str += output.output_data_string()
-        if other != []:
-            print_str += "// INOUT\n"
-            for oth in other:
-                print_str += oth.output_data_string()
+        print_str += "// Data\n"
+        for data in module_data:
+            print_str += data.output_data_string()
         
         # add to list
         return_data.append(print_str + ");\n")
