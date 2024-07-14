@@ -229,15 +229,18 @@ def extract_modules(file_name, modules_to_extract = []):
         print_str += f" {name}_inst "
         print_str += "(\n"
         
-        print_str += "// INPUTS\n"
-        for input in inputs:
-            print_str += input.output_data_string()
-        print_str += "// OUTPUTS\n"
-        for output in outputs:
-            print_str += output.output_data_string()
-        print_str += "// INOUT\n"
-        for oth in other:
-            print_str += oth.output_data_string()
+        if inputs != []:
+            print_str += "// INPUTS\n"
+            for input in inputs:
+                print_str += input.output_data_string()
+        if outputs != []:
+            print_str += "// OUTPUTS\n"
+            for output in outputs:
+                print_str += output.output_data_string()
+        if other != []:
+            print_str += "// INOUT\n"
+            for oth in other:
+                print_str += oth.output_data_string()
         
         # add to list
         return_data.append(print_str + ");\n")
