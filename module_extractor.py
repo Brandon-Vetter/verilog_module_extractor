@@ -151,6 +151,7 @@ def extract_modules(file_name, modules_to_extract = []):
     for module in modules:
         inputs = []
         outputs = []
+        other = []
         static_data = []
         name = module[1]
         if name not in modules_to_extract and modules_to_extract != []:
@@ -197,8 +198,12 @@ def extract_modules(file_name, modules_to_extract = []):
                     inputs.append(value)
                     ip = True
                     op = False
-                if 'output' in data_value[0]:
+                elif 'output' in data_value[0]:
                     outputs.append(value)
+                    ip = False
+                    op = True
+                else:
+                    other.append(value)
                     ip = False
                     op = True
                 try:
@@ -228,6 +233,9 @@ def extract_modules(file_name, modules_to_extract = []):
         print_str += "// OUTPUTS\n"
         for output in outputs:
             print_str += output.output_data_string()
+        print_str += "// INOUT\n"
+        for oth in other:
+            print_str += oth.output_data_string()
         
         # add to list
         return_data.append(print_str + ");\n")
