@@ -205,7 +205,7 @@ def extract_modules(file_name, modules_to_extract = []):
                 else:
                     other.append(value)
                     ip = False
-                    op = True
+                    op = False
                 try:
                     value.bus_width = data_value[4]
                 except IndexError:
@@ -215,6 +215,8 @@ def extract_modules(file_name, modules_to_extract = []):
                     inputs[-1].values.append(parameter.strip())
                 elif op:
                     outputs[-1].values.append(parameter.strip())
+                else:
+                    other[-1].values.append(parameter.strip())
         
         # add the names for the sections
         print_str = name
