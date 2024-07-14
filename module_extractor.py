@@ -185,7 +185,7 @@ def extract_modules(file_name, modules_to_extract = []):
         
         #parse module wire parameters
         for parameter in parsed_parameters:
-            if 'input' in parameter or 'output' in parameter:
+            if 'input' in parameter or 'output' or 'inout' in parameter:
                 data_value = parse_line(parameter)
                 data_type = data_value[1]
                 value = ModuleDataValues(data_type)
@@ -202,7 +202,7 @@ def extract_modules(file_name, modules_to_extract = []):
                     outputs.append(value)
                     ip = False
                     op = True
-                else:
+                elif 'inout' in data_value[0]: 
                     other.append(value)
                     ip = False
                     op = False
