@@ -5,6 +5,11 @@ import argparse
 
 """
 Author: Brandon Vetter
+
+How to run:
+You will need python version 3.8 to run.  basic command:
+python3 module_extractor.py <filename> [flags]
+
 Description: 
 takes verilog files, finds the modules and extracts information
 from them.  It will output the modules in a component format, or
