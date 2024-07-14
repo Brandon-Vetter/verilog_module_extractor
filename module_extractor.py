@@ -54,7 +54,7 @@ class ModuleDataValues:
                 value_input = self.name_overides[value]
             except KeyError:
                 value_input = value
-            output_str += f"\t.{value}({value_input}) // {self.direction.upper()} {self.data_type} {self.data_width} {bus_width_str}\n"
+            output_str += f"\t.{value.strip()}({value_input.strip()}) // {self.direction.upper().strip()} {self.data_type.strip()} {self.data_width.strip()} {bus_width_str.strip()}\n"
         return output_str
 
 def main():
