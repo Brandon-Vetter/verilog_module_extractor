@@ -1,27 +1,27 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
+// Company:
+// Engineer:
+//
 // Create Date: 03/22/2024 08:24:13 PM
-// Design Name: 
+// Design Name:
 // Module Name: top
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
+// Project Name:
+// Target Devices:
+// Tool Versions:
+// Description:
+//
+// Dependencies:
+//
 // Revision:
 // Revision 0.01 - File Created
 // Additional Comments:
-// 
+//
 //////////////////////////////////////////////////////////////////////////////////
 
 
 module top #(
-    parameter ELEMENT_SIZE = 4,
+    parameter int ELEMENT_SIZE = 4,
     parameter CODON_MAX_LENGTH = 5,
     parameter ELEMENT_COUNT = 32,
     parameter SEGMENT_SIZE = ELEMENT_COUNT + (CODON_MAX_LENGTH - 1),

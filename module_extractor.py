@@ -169,9 +169,9 @@ def extract_modules(file_name, modules_to_extract = []):
                 local_paramter = parse_line(var, split_char='=')
                 data_line = parse_line(local_paramter[0])
                 if 'parameter' in data_line[0].lower():
-                    static_data.append(ModuleDataValues(data_line[0], data_width=''))
-                    static_data[-1].values.append(data_line[1].strip())
-                    static_data[-1].name_overides[data_line[1].strip()] = local_paramter[1].strip()
+                    static_data.append(ModuleDataValues(" ".join(data_line[:-1]), data_width=''))
+                    static_data[-1].values.append(data_line[-1].strip())
+                    static_data[-1].name_overides[data_line[-1].strip()] = local_paramter[1].strip()
                     continue
                 else:
                     static_data[-1].values.append(data_line[0].strip())
