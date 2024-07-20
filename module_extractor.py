@@ -168,6 +168,8 @@ def extract_modules(file_name, modules_to_extract = []):
             for var in static_input:
                 local_paramter = parse_line(var, split_char='=')
                 data_line = parse_line(local_paramter[0])
+                if 'localparam' in data_line[0].lower():
+                    continue 
                 if 'parameter' in data_line[0].lower():
                     static_data.append(ModuleDataValues(" ".join(data_line[:-1]), data_width=''))
                     static_data[-1].values.append(data_line[-1].strip())
@@ -270,7 +272,8 @@ def get_module_names(file_name):
 def parse_line(line, split_char = ' ', special_chars = [], ignore_escape=False):
     """
     Returns a parsed array from a line.
-    Used to parse the module lines."""
+    Used to parse the module lines.
+    """
     term_list = []
     current_term = ''
     escape_term = ''

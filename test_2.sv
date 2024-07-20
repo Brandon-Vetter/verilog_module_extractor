@@ -22,7 +22,7 @@
 
 module top #(
     parameter int ELEMENT_SIZE = 4,
-    parameter CODON_MAX_LENGTH = 5,
+    localparam CODON_MAX_LENGTH = 5,
     parameter ELEMENT_COUNT = 32,
     parameter SEGMENT_SIZE = ELEMENT_COUNT + (CODON_MAX_LENGTH - 1),
     parameter MAX_CODONS = 6,
